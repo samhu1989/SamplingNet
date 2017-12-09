@@ -3,7 +3,27 @@ import numpy as np;
 from layers import *;
 
 def stack_blocks(x3D,x2D,HID_NUM,consts,block_num):
-    for i in range(block_num//3):
+    #calib layers
+    x2D = cnn_layer(x2D,[3,3,int(x2D.shape[-1]),2*int(x2D.shape[-1])],name="x2D_cnn_0",bn_scale=True);
+    x2D = cnn_layer(x2D,[3,3,int(x2D.shape[-1]),int(x2D.shape[-1])],name="x2D_cnn_1",bn_scale=True,bn_offset=True);
+    x2D = tf.nn.max_pool(x2D,[1,2,2,1],[1,2,2,1],"VALID");
+    x2D = cnn_layer(x2D,[3,3,int(x2D.shape[-1]),2*int(x2D.shape[-1])],name="x2D_cnn_2",bn_scale=True);
+    x2D = cnn_layer(x2D,[3,3,int(x2D.shape[-1]),int(x2D.shape[-1])],name="x2D_cnn_3",bn_scale=True,bn_offset=True);
+    x2D = tf.nn.max_pool(x2D,[1,2,2,1],[1,2,2,1],"VALID");
+    x2D = cnn_layer(x2D,[3,3,int(x2D.shape[-1]),2*int(x2D.shape[-1])],name="x2D_cnn_4",bn_scale=True);
+    x2D = cnn_layer(x2D,[3,3,int(x2D.shape[-1]),int(x2D.shape[-1])],name="x2D_cnn_5",bn_scale=True,bn_offset=True);
+    x2D = tf.nn.max_pool(x2D,[1,2,2,1],[1,2,2,1],"VALID");
+    x2D = cnn_layer(x2D,[3,3,int(x2D.shape[-1]),2*int(x2D.shape[-1])],name="x2D_cnn_6",bn_scale=True);
+    x2D = cnn_layer(x2D,[3,3,int(x2D.shape[-1]),int(x2D.shape[-1])],name="x2D_cnn_7",bn_scale=True,bn_offset=True);
+    x2D = tf.nn.max_pool(x2D,[1,2,2,1],[1,2,2,1],"VALID");
+    #calib layers
+    W0_shape = [1,int(x3D.shape[-1]),int(x3D.shape[-1])];
+    W0_init  = tf.constant_initializer(np.random.uniform(0.0,0.5,W0_shape).astype(np.float32));
+    W0 = tf.get_variable(shape=W0_shape,initializer=W0_init,trainable=True,name='W0');
+    W0 += tf.zeros([int(x3D.shape[0]),1,1],dtype=tf.float32);
+    x3D = tf.matmul(x3D,W0);
+    x3D = instancenorm(x3D,True,True,name="3Dinstn");
+    for i in range((block_num//3)-1):
         CHAN_NUM = 2*int(x2D.shape[-1]);
         if CHAN_NUM > 1024:
             CHAN_NUM = 1024;
