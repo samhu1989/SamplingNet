@@ -1,3 +1,10 @@
 \section{Network of ``Network Prediction"}
 \subsection{Problem and Notations}
 The specific problem is how to reconstruct a complete 3D shape of an object with a single 2D image as reference.  
+
+\noindent \textbf{Point Net Block for Shape Generation}
+When a potter crafting something from a lump of clay, she do it by applying a serious of squeeze. Each squeeze only affect the clay locally, but all the squeeze together turn the clay into graceful shape. Our shape generation network is designed by stimulating such process. We employ a simpler version of PointNet\cite{PointNet} that is a network forged with the symmetric functions and apply it on each k-neighbor of input point set to predict an offset for the center of these k-neighborhoods. We do this deformation. 
+
+\noindent \textbf{Convolution Network for Semantic Analysis}
+
+
