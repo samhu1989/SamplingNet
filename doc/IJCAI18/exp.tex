@@ -1,0 +1,108 @@
+\section{Experimental Evaluation}
+\subsection{Experimental Setup}
+\subsection{Point Set Generation with Synthetic Images}
+In this subsection, we compare our approach with point set generation network (PSGN)\cite{PSGN} on ShapeNet dataset \cite{shapenetdata}. 
+\begin{table*}
+	\centering
+	\begin{tabular}{c c c c c}
+		Input & GT & PSGN\cite{PSGN} & NetNet Points & NetNet Mesh \\
+		\hline
+		\includegraphics[width=0.19\linewidth]{img/input/000.png}&
+		\includegraphics[width=0.19\linewidth]{img/GT/000.png}&
+		\includegraphics[width=0.19\linewidth]{img/PSGN/000.png}&
+		\includegraphics[width=0.19\linewidth]{img/KPARAM/000.png}&
+		\includegraphics[width=0.19\linewidth]{img/KPARAM/000m.png}\\
+		%
+		\includegraphics[width=0.19\linewidth]{img/input/001.png}&
+		\includegraphics[width=0.19\linewidth]{img/GT/001.png}&
+		\includegraphics[width=0.19\linewidth]{img/PSGN/001.png}&
+		\includegraphics[width=0.19\linewidth]{img/KPARAM/001.png}&
+		\includegraphics[width=0.19\linewidth]{img/KPARAM/001m.png}\\
+		%
+		\includegraphics[width=0.19\linewidth]{img/input/002.png}&
+		\includegraphics[width=0.19\linewidth]{img/GT/002.png}&
+		\includegraphics[width=0.19\linewidth]{img/PSGN/002.png}&
+		\includegraphics[width=0.19\linewidth]{img/KPARAM/002.png}&
+		\includegraphics[width=0.19\linewidth]{img/KPARAM/002m.png}\\
+		%
+		\includegraphics[width=0.19\linewidth]{img/input/003.png}&
+		\includegraphics[width=0.19\linewidth]{img/GT/003.png}&
+		\includegraphics[width=0.19\linewidth]{img/PSGN/003.png}&
+		\includegraphics[width=0.19\linewidth]{img/KPARAM/003.png}&
+		\includegraphics[width=0.19\linewidth]{img/KPARAM/003m.png}\\
+	\end{tabular}
+	\caption{Visual Result}
+	\label{tab:vis}
+\end{table*}
+%\begin{figure}[htb]
+%	\centering
+%	\includegraphics[width=0.4\linewidth]{images/JRMPC.png}
+%	\includegraphics[width=0.4\linewidth]{images/JRCSReg.png}
+%	\caption{Joint registration results on 4 point sets of Stanford Bunny by JRMPC~\cite{Evangelidis2014} (left) and our JRCS-Basic (right).}
+%	\label{fig:reg}
+%\end{figure}
+\begin{table*}
+	\centering
+	\caption{Comparison with point set generation network on point-set based metrics. }
+	\begin{tabular}{c c c c}
+		Category & Category id & Ours & PSGN\cite{PSGN} \\
+		\hline
+		aircraft & 02691156 &- & 0.31\\   
+		dustbin & 02747177 &- & -\\
+		bag & 02773838  &- &  -\\
+		basket & 02801938 &- & -\\
+		bathtub & 02808440 &- & -\\
+		bed & 02818832 & - & -\\
+		shelf & 02871439 &- & -\\
+		bottle & 02876657 &- & -\\
+		bowl & 02880940 &- & -\\
+		bus & 02924116 &- & -\\
+		dresser & 02933112 &- & -\\
+		camera & 02942699 &- & -\\
+		can & 02946921 &- & -\\
+		cap & 02954340 &- & -\\
+		car & 02958343 &- & 0.23\\
+		cellphone & 02992529,04401088 & - & -\\
+		chair & 03001627 & - & -\\
+		clock & 03046257 & - & -\\
+		keyboard & 03085013 & - & -\\
+		dishwasher & 03207941 & - & -\\
+		monitor & 03211117 & - & -\\
+		headphone & 03261776 & - & -\\
+		hydrant & 03325088 & - & -\\
+		file cabinet& 03337140 & - & -\\
+		guitar & 03467517 & - & -\\
+		helmet & 03513137 & - & -\\
+		vase & 03593526 & -& -\\
+		knife & 03624134 & - &-\\
+		lamp & 03636649 & - &-\\
+		laptop & 03642806 & - &-\\
+		speaker & 03691459 & - &-\\
+		mailbox & 03710193 & - &-\\
+		mike & 03759954 & - & -\\
+		microwave & 03761084 & - & -\\
+		motorcycle & 03790512 & - & -\\
+		mug & 03797390 & - &-\\
+		piano & 03928116 & -  & - \\
+		pillow & 03938244 & - &-\\
+		handgun & 03948459,04090263 & - & -\\
+		planter & 03991062 & - & -\\
+		printer & 04004475 & - & -\\
+		remote & 04074963 & - & -\\
+		missile & 04099429 & - & -\\
+		skateboard & 04225987 & - &-\\
+		sofa & 04256520 & - & -\\
+		stove & 04330267 & - & -\\
+		table & 04379243 & - & -\\
+		tower & 04460130 & - & -\\
+		train & 04468005 & - & -\\
+		ship  & 04530566 & - & -\\
+		washer &  04554684 & - & -\\
+	\end{tabular}
+	\label{tab:seg}
+\end{table*}
+
+\subsection{Generalization Capacity}
+\subsection{Global Semantic Correspondences}
+\subsection{Ablation Analysis}
+\subsection{Point Set Generation with Real Images}
