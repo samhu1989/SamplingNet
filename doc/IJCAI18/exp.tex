@@ -5,7 +5,7 @@ In this subsection, we compare our approach with point set generation network (P
 \begin{table*}
 	\centering
 	\begin{tabular}{c c c c c}
-		Input & GT & PSGN\cite{PSGN} & NetNet Points & NetNet Mesh \\
+		Input & GT & PSGN\cite{PSGN} & ParamNet Points & ParamNet Mesh \\
 		\hline
 		\includegraphics[width=0.19\linewidth]{img/input/000.png}&
 		\includegraphics[width=0.19\linewidth]{img/GT/000.png}&
@@ -43,11 +43,11 @@ In this subsection, we compare our approach with point set generation network (P
 %\end{figure}
 \begin{table*}
 	\centering
-	\caption{Comparison with point set generation network on point-set based metrics. }
+	\caption{Comparison with point set generation network on point set Chamfer Distance. }
 	\begin{tabular}{c c c c}
 		Category & Category id & Ours & PSGN\cite{PSGN} \\
 		\hline
-		aircraft & 02691156 &- & 0.31\\   
+		aircraft & 02691156 & 0.34 & 0.31\\   
 		dustbin & 02747177 &- & -\\
 		bag & 02773838  &- &  -\\
 		basket & 02801938 &- & -\\
@@ -61,7 +61,7 @@ In this subsection, we compare our approach with point set generation network (P
 		camera & 02942699 &- & -\\
 		can & 02946921 &- & -\\
 		cap & 02954340 &- & -\\
-		car & 02958343 &- & 0.23\\
+		car & 02958343 & 0.22 & 0.23\\
 		cellphone & 02992529,04401088 & - & -\\
 		chair & 03001627 & - & -\\
 		clock & 03046257 & - & -\\
