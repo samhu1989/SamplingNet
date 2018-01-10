@@ -2,11 +2,15 @@ import numpy as np;
 from PIL import Image;
 import os;
 
-def listdir(dir_):
+def listdir(dir_,suffix=None):
     lst = os.listdir(dir_);
+    olst = [];
     for i in range(len(lst)):
-        lst[i]  = dir_+os.sep+lst[i];
-    return lst;
+        if suffix is None:
+            olst.append( dir_+os.sep+lst[i] );
+        elif lst[i].endswith(suffix):
+            olst.append( dir_+os.sep+lst[i] );
+    return olst;
 
 def write_to_obj(fpath,pts_v,pts_c=None,faces=None):
     for i in range(pts_v.shape[0]):

@@ -1,6 +1,7 @@
 import tensorflow as tf;
 import numpy as np;
-
+import tflearn;
+import math;
 def instancenorm(x,bn_offset=False,bn_scale=False,name=None,eps=1e-06):
     with tf.variable_scope(name, default_name='InstanceNorm'):
         if len(x.shape) > 3:
@@ -48,3 +49,49 @@ def cnn_layer(x,size,stride=1,name=None,activate="relu",padding="SAME",bn_offset
         elif activate=="tanh":
             x = tf.tanh(x,name=name+"_tanh");
     return x;
+
+def kcnn_layer(x3D,knn_index,name="kcnn"):
+    batch_size = int(x3D.shape[0]);
+    pts_num = int(x3D.shape[1]);
+    k = int(knn_index.shape[-2]);
+    x3Dkcnn = tf.gather_nd( x3D , knn_index , name = name+"_gather" );
+    #centralization
+    x3Dkcnn -= tf.reshape(x3D,[batch_size,pts_num,1,3]);
+    num = int(2**math.ceil(math.log(k*3,2)));
+    print num;
+    x3Dkcnn = tflearn.layers.conv.conv_2d(x3Dkcnn,num,(1,1),strides=1,activation='relu',weight_decay=1e-5,regularizer='L2',name=name+"_cnn_a");
+    x3Dkcnn = tflearn.layers.conv.conv_2d(x3Dkcnn,num//2,(1,1),strides=1,activation='linear',weight_decay=1e-5,regularizer='L2',name=name+"_cnn_b");
+    x3Dkcnn = tf.reduce_max(x3Dkcnn,2);
+    x3Dkcnn = tf.reshape(x3Dkcnn,[batch_size,pts_num,1,-1]);
+    x3Dkcnn = tflearn.layers.conv.conv_2d(x3Dkcnn,num//4,(1,1),strides=1,activation='relu',weight_decay=1e-5,regularizer='L2',name=name+"_cnn_c");
+    x3Dkcnn = tflearn.layers.conv.conv_2d(x3Dkcnn,3,(1,1),strides=1,activation='linear',weight_decay=1e-5,regularizer='L2',name=name+"_cnn_d");
+    x3Dkcnn = tf.reshape(x3Dkcnn,[batch_size,pts_num,3]);
+    return x3D + x3Dkcnn;
+
+def fc_to_param(x2D,x1D,batch_size,k,name="fc_to_param"):
+    param = [];
+    num = int(2**math.ceil(math.log(k*3,2)));
+    n = [(num//2)*(num//4),num//4,(num//4)*3,3]; 
+    shape = [ [batch_size,num//2,num//4] , [batch_size,1,num//4]  , [batch_size,num//4,3] , [batch_size,1,3] ];
+    x1D = tflearn.layers.core.fully_connected(x1D,1024,activation='linear',weight_decay=1e-4,regularizer='L2')
+    x1D = tf.nn.relu( tf.add( x1D, tflearn.layers.core.fully_connected(x2D,1024,activation='linear',weight_decay=1e-3,regularizer='L2') ) );
+    for i in range(len(n)):
+        x1D = tflearn.layers.core.fully_connected( x1D,n[i],activation='relu',weight_decay=1e-4,regularizer='L2');
+        x1D = tflearn.layers.core.fully_connected( x1D,n[i],activation='linear',weight_decay=1e-4,regularizer='L2');
+        param.append(tf.reshape(x1D,shape[i]));
+    return param;
+    
+def param_kcnn_layer(x3D,knn_index,param_lst,name="param_kcnn"):
+    batch_size = int(x3D.shape[0]);
+    k = int(knn_index.shape[-2]);
+    x3Dkcnn = tf.gather_nd( x3D , knn_index , name = name+"_gather" );
+    num = int(2**math.ceil(math.log(k*3,2)));
+    x3Dkcnn = tflearn.layers.conv.conv_2d(x3Dkcnn,num,(1,1),strides=1,activation='relu',weight_decay=1e-5,regularizer='L2',name=name+"_cnn_a");
+    x3Dkcnn = tflearn.layers.conv.conv_2d(x3Dkcnn,num//2,(1,1),strides=1,activation='linear',weight_decay=1e-5,regularizer='L2',name=name+"_cnn_b");
+    x3Dkcnn = tf.reduce_max(x3Dkcnn,2);
+    x3Dkcnn = tf.add(tf.matmul(x3Dkcnn,param_lst[0],name=name+"_matmul0"),param_lst[1],name=name+"_add0");
+    x3Dkcnn = tf.nn.relu( x3Dkcnn );
+    x3Dkcnn = tf.add(tf.matmul(x3Dkcnn,param_lst[2],name=name+"_matmul1"),param_lst[3],name=name+"_add1");
+    return x3D + x3Dkcnn;
+    
+    

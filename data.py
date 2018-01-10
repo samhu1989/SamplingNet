@@ -13,8 +13,8 @@ class DataFetcher(threading.Thread):
         self.WIDTH=256;
         self.HID_NUM=128;
         self.PTS_DIM=3;
-        self.Data = Queue.Queue(128);
-        self.DataTag = Queue.Queue(128);
+        self.Data = Queue.Queue(64);
+        self.DataTag = Queue.Queue(64);
         self.Cnt = 0;
         self.EpochCnt = 0;
         self.stopped = False;
@@ -27,19 +27,31 @@ class DataFetcher(threading.Thread):
         
     def workMix(self):
         q = [];
-        files = []
+        files = [];
         cnt = 0;
         PTS_NUM = None;
+        PTS_DENSE_NUM = None;
         VIEW_NUM = None;
         while cnt < self.BATCH_SIZE:
             datapath = self.Dir[self.Cnt];
             f = h5py.File(datapath,"r");
+            fdense = None;
+            densepath = datapath.split(".")[0]+".dense";
             x2DIn = f["IMG"][...];
             yGTIn = f["PV"][...];
             if PTS_NUM is None:
                 PTS_NUM = int(yGTIn.shape[-2]);
             else:
                 assert PTS_NUM==int(yGTIn.shape[-2]);
+            if os.path.exists(densepath):
+                fdense = h5py.File(densepath,"r");
+                yGTDenseIn = fdense["PV"][...];
+                if PTS_DENSE_NUM is None :
+                    PTS_DENSE_NUM= int(yGTDenseIn.shape[-2]);
+                else:
+                    assert PTS_DENSE_NUM==int(yGTDenseIn.shape[-2]);
+            if VIEW_NUM is None:
+                VIEW_NUM = int(yGTIn.shape[0]);
             if VIEW_NUM is None:
                 VIEW_NUM = int(yGTIn.shape[0]);
             else:
@@ -49,7 +61,7 @@ class DataFetcher(threading.Thread):
             elif not np.isfinite(yGTIn).all():
                 print datapath," contain invalid data in yGT";
             else:
-                files.append(f);
+                files.append((f,fdense));
                 cnt += 1;
             self.Cnt += 1;
             if self.Cnt >= len(self.Dir):
@@ -59,14 +71,23 @@ class DataFetcher(threading.Thread):
             x2D = np.zeros([self.BATCH_SIZE,self.HEIGHT,self.WIDTH,4]);
             x3D = eval(self.randfunc);
             yGT = np.zeros([self.BATCH_SIZE,PTS_NUM,3]);
-            q.append((x2D,x3D,yGT));
+            if fdense is not None:
+                yGTdense = np.zeros([self.BATCH_SIZE,PTS_DENSE_NUM,3]);
+                q.append((x2D,x3D,yGT,yGTdense));
+            else:
+                q.append((x2D,x3D,yGT));
         fi = 0;
-        for f in files:
+        for f,fdense in files:
             x2DIn = f["IMG"][...];
             yGTIn = f["PV"][...];
+            yGTDense = None;
+            if fdense is not None:
+                yGTDense = fdense["PV"][...];
             for i in range(VIEW_NUM):
                 q[i][0][fi,...] = x2DIn[i,...];
                 q[i][2][fi,...] = yGTIn[i,...];
+                if yGTDense is not None:
+                    q[i][-1][fi,...] = yGTDense[i//2,...];
             f.close();
             fi += 1;
         return q;

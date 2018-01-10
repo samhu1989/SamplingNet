@@ -5,7 +5,7 @@ from tensorflow.python.framework import ops
 path = os.path.dirname(os.path.realpath(__file__));
 nn_distance_module=tf.load_op_library(path+'/ChamferDist.so')
 
-def ChamferDistLoss(xyz1,xyz2):
+def Loss(xyz1,xyz2):
 	'''
 Computes the distance of nearest neighbors for a pair of point clouds
 input: xyz1: (batch_size,#points_1,3)  the first point cloud

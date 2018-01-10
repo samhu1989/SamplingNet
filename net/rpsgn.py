@@ -3,9 +3,8 @@ import numpy as np;
 import loss;
 import tflearn;
 from phase import*;
-from rpsgn import*;
 
-def PSGN(phase,size=[16,3,128,192,256]):
+def RPSGN(phase,size=[16,3,128,192,256]):
     BATCH_SIZE=size[0];
     PTS_DIM=size[1];
     HID_NUM=size[2];
@@ -26,22 +25,32 @@ def PSGN(phase,size=[16,3,128,192,256]):
         yGT = tf.placeholder(tf.float32,shape=[None,PTS_DIM],name='yGT');
         x3D = tf.placeholder(tf.float32,shape=[None,PTS_DIM],name='x3D');
         ins.append(yGT);
-        ins.append(x3D);
+        ins.append(x3D);   
         yGT = tf.reshape(yGT,[BATCH_SIZE,-1,PTS_DIM]);
         x3D = tf.reshape(x3D,[HID_NUM,-1,PTS_DIM]);
         x2D = tf.placeholder(tf.float32,shape=[None,HEIGHT,WIDTH,4],name='x2D');
         x2D = tf.reshape(x2D,[BATCH_SIZE,HEIGHT,WIDTH,4]);
         ins.append(x2D);
         x = x2D;
+        
+        r2D = tf.placeholder(tf.float32,shape=[BATCH_SIZE,512],name='r2D');
+        ins.append(r2D);
+        
+        r2D = tflearn.layers.core.fully_connected(r2D,1024,activation='relu',weight_decay=1e-3,regularizer='L2');
+        r2D = tflearn.layers.core.fully_connected(r2D,3072,activation='relu',weight_decay=1e-3,regularizer='L2');
+        r2D = tf.reshape(r2D,[BATCH_SIZE,48,64,1]);
+        r2D = tflearn.layers.conv.conv_2d_transpose(r2D,1,[5,5],[96,128],strides=2,activation='relu',weight_decay=1e-5,regularizer='L2');
+        r2D = tflearn.layers.conv.conv_2d(r2D,1,(3,3),strides=1,activation='relu',weight_decay=1e-5,regularizer='L2');
 #192 256
-        x=tflearn.layers.conv.conv_2d(x,16,(3,3),strides=1,activation='relu',weight_decay=1e-5,regularizer='L2')
-        x=tflearn.layers.conv.conv_2d(x,16,(3,3),strides=1,activation='relu',weight_decay=1e-5,regularizer='L2')
+        x=tflearn.layers.conv.conv_2d(x,16,(3,3),strides=1,activation='relu',weight_decay=1e-5,regularizer='L2');
+        x=tflearn.layers.conv.conv_2d(x,16,(3,3),strides=1,activation='relu',weight_decay=1e-5,regularizer='L2');
         x0=x
         x=tflearn.layers.conv.conv_2d(x,32,(3,3),strides=2,activation='relu',weight_decay=1e-5,regularizer='L2')
 #96 128
         x=tflearn.layers.conv.conv_2d(x,32,(3,3),strides=1,activation='relu',weight_decay=1e-5,regularizer='L2')
         x=tflearn.layers.conv.conv_2d(x,32,(3,3),strides=1,activation='relu',weight_decay=1e-5,regularizer='L2')
         x1=x
+        x = tf.concat([x,r2D],3);
         x=tflearn.layers.conv.conv_2d(x,64,(3,3),strides=2,activation='relu',weight_decay=1e-5,regularizer='L2')
 #48 64
         x=tflearn.layers.conv.conv_2d(x,64,(3,3),strides=1,activation='relu',weight_decay=1e-5,regularizer='L2')
@@ -150,12 +159,16 @@ def PSGN(phase,size=[16,3,128,192,256]):
         x=tf.concat([x_additional,x],1)
         x=tf.reshape(x,(BATCH_SIZE,-1,3))
         outs.append(x);
-        dists_forward,_,dists_backward,_=loss.ChamferDistLoss.Loss(yGT,x)
-        dists_forward=tf.reduce_mean(dists_forward);
-        dists_backward=tf.reduce_mean(dists_backward);
+        dists_forward,_,dists_backward,_ = loss.ChamferDistLoss.Loss(yGT,x)
+        dists_forward = tf.reduce_mean(dists_forward,1);
+        dists_backward = tf.reduce_mean(dists_backward,1);
+        dists = dists_forward + dists_backward;
+        outs.append(dists);
+        dists_forward = tf.reduce_mean(dists_forward);
+        dists_backward = tf.reduce_mean(dists_backward);
         tf.summary.scalar("dists_forward",dists_forward);
         tf.summary.scalar("dists_backward",dists_backward);
-        loss_nodecay=(dists_forward+dists_backward)*1024*100;
+        loss_nodecay = ( dists_forward + dists_backward )*1024*100;
         tf.summary.scalar("loss_no_decay",loss_nodecay);
         decay = tf.add_n(tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES))*0.1;
         tf.summary.scalar("decay",decay);

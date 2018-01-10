@@ -118,3 +118,46 @@ def ResBlock(x3D,x2D,size,consts,name=None):
         x3D = tf.add(x3D,res_x3D,name=name+"_x3D");
         tf.summary.histogram(name+"_x3D",x3D);
     return x3D,x2D;
+
+def KParamBlock(x2D,x3D,knn_dist,knn_idx,name="KParamBlock"):
+    with tf.name_scope(name, "KParamBlock") as scope:
+        batch_size = int(x3D.shape[0]);
+        k = int(knn_idx.shape[-2]);
+        x3Dkcnn = tf.gather_nd( x3D , knn_idx , name = name+"_gather" );
+        num = int(2**math.ceil(math.log(k*3,2)));
+        
+        x1D = tf.reshape(x2D,[batch_size,-1,3072]);
+        x1D = tf.reduce_max(x1D,1);
+        
+        param_lst = [];
+        n = [(num//2)*(num//4),num//4,(num//4)*3,3]; 
+        shape = [ [batch_size,num//2,num//4] , [batch_size,1,num//4]  , [batch_size,num//4,3] , [batch_size,1,3] ];
+
+        x1D = tflearn.layers.core.fully_connected(x1D,1024,activation='relu',weight_decay=1e-4,regularizer='L2')
+        for i in range(len(n)):
+            x1D = tflearn.layers.core.fully_connected( x1D,n[i],activation='relu',weight_decay=1e-4,regularizer='L2');
+            x1D = tflearn.layers.core.fully_connected( x1D,n[i],activation='linear',weight_decay=1e-4,regularizer='L2');
+            param_lst.append(tf.reshape(x1D,shape[i]));
+        
+        x3Dkcnn = tflearn.layers.conv.conv_2d(x3Dkcnn,num,(1,1),strides=1,activation='relu',weight_decay=1e-5,regularizer='L2',name=name+"_3Dcnn_a");
+        x3Dkcnn = tflearn.layers.conv.conv_2d(x3Dkcnn,num//2,(1,1),strides=1,activation='linear',weight_decay=1e-5,regularizer='L2',name=name+"_3Dcnn_b");
+        
+        alpha_init = tf.constant_initializer(np.random.normal(0.0,0.5,[1]).astype(np.float32));
+        alpha = tf.get_variable(shape=[],initializer=alpha_init,trainable=True,name=name+'_alpha');
+        '''
+        beta_init = tf.constant_initializer(np.random.normal(0.0,0.5).astype(np.float32));
+        beta = tf.get_variable(shape=[],initializer=beta_init,trainable=True,name=name+'_beta');
+        '''
+        gama_init = tf.constant_initializer(np.random.normal(0.0,0.5,[1]).astype(np.float32));
+        gama = tf.get_variable(shape=[],initializer=gama_init,trainable=True,name=name+'_gama');
+        
+        x3Dkcnn_w = tf.square(alpha)*tf.exp( tf.negative( knn_dist*tf.square(gama) ) );
+        x3Dkcnn_w = tf.reshape(x3Dkcnn_w,[batch_size,-1,k,1]);
+        x3Dkcnn = tf.multiply(x3Dkcnn_w,x3Dkcnn);
+        x3Dkcnn = tf.reduce_max(x3Dkcnn,2);
+
+        x3Dkcnn = tf.add(tf.matmul(x3Dkcnn,param_lst[0],name=name+"_matmul0"),param_lst[1],name=name+"_add0");
+        x3Dkcnn = tf.nn.relu( x3Dkcnn );
+        x3Dkcnn = tf.add(tf.matmul(x3Dkcnn,param_lst[2],name=name+"_matmul1"),param_lst[3],name=name+"_add1");
+        x3D = tf.add(x3D,x3Dkcnn,name=name+"_add2");
+    return x3D;
