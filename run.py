@@ -6,6 +6,10 @@ import tensorflow as tf;
 import util;
 import numpy as np;
 from data import DataFetcher;
+try:
+  import cPickle as pickle;
+except ImportError:
+  import pickle ;
 
 FetcherLst = [];
 
@@ -223,12 +227,15 @@ def test(sizes):
             print "failed to restore model";
             return;
         stat = {};
-        f = open(preddir+os.sep+"log.txt","w");
         try:
             test_fetcher.start();
             for cnt in range(len(test_fetcher.Dir)):
                 x2D,x3D,yGT = test_fetcher.fetch();
                 tag = test_fetcher.fetchTag();
+                if ( not testbegin is None ) and ( testbegin > cnt ):
+                    continue;
+                if ( not testend is None ) and ( testend <= cnt ):
+                    continue;
                 r2D = None;
                 if len(ins) >= 5:
                     r2D_dim = int(ins[3].shape[1]);
@@ -286,9 +293,18 @@ def test(sizes):
                     tri_lstdense = util.triangulateSphere( x3Ddense );
                     f_lstdense = util.getface(tri_lstdense);
                     util.write_to_obj(fdir+os.sep+"objdense",ydense,rgbdense,f_lstdense);
-                        
-            for (k,v) in stat.items():
+            fpkl = None;
+            if ( not testbegin is None ) and ( not testend is None ):
+                fpkl = open(preddir+os.sep+"log%03d_%03d.pkl"%(testbegin,testend),"wb");
+            elif not testbegin is None:
+                fpkl = open(preddir+os.sep+"log%03d_%03d.pkl"%(testbegin,len(test_fetcher.Dir)),"wb");
+            elif not testend is None:
+                fpkl = open(preddir+os.sep+"log%03d_%03d.pkl"%(0,testend),"wb");
+            else:
+                f = open(preddir+os.sep+"log.txt","w");
+                for (k,v) in stat.items():
                     print >>f,k,v;
+            pickle.dump(stat,fpkl);
         finally:
             f.close();
             test_fetcher.shutdown();
@@ -303,6 +319,8 @@ if __name__ == "__main__":
     preddir="/data4T1/samhu/tf_dump/predict";
     net_name="VPSGN";
     gpuid=1;
+    testbegin = None;
+    testend = None;
     for pt in sys.argv[1:]:
         if pt[:5]=="data=":
             datadir = pt[5:];
@@ -317,6 +335,10 @@ if __name__ == "__main__":
             gpuid = int(pt[4:]);
         elif pt[:4]=="net=":
             net_name = pt[4:];
+        elif pt[:6]=="testb=":
+            testbegin=int(pt[6:]);
+        elif pt[:4]=="teste=":
+            testend=int(pt[4:]);
         else:
             cmd = pt;
     preddir += "/" + net_name;
