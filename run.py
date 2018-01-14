@@ -337,8 +337,8 @@ if __name__ == "__main__":
             net_name = pt[4:];
         elif pt[:6]=="testb=":
             testbegin=int(pt[6:]);
-        elif pt[:4]=="teste=":
-            testend=int(pt[4:]);
+        elif pt[:6]=="teste=":
+            testend=int(pt[6:]);
         else:
             cmd = pt;
     preddir += "/" + net_name;
