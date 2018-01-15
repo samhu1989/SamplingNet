@@ -235,7 +235,7 @@ def test(sizes):
                 if ( not testbegin is None ) and ( testbegin > cnt ):
                     continue;
                 if ( not testend is None ) and ( testend <= cnt ):
-                    continue;
+                    break;
                 r2D = None;
                 if len(ins) >= 5:
                     r2D_dim = int(ins[3].shape[1]);
@@ -266,7 +266,6 @@ def test(sizes):
                 else:
                     util.write_to_obj(fdir+os.sep+"obj",yout);
                 util.write_to_obj(fdir+os.sep+"GTobj",yGTout);
-                util.write_to_img(fdir,x2D);
                 if tag in stat:
                     newcnt = stat[tag+"_cnt"] + 1;
                     stat[tag] = stat[tag]*stat[tag+"_cnt"]/newcnt + loss/newcnt;
@@ -277,13 +276,15 @@ def test(sizes):
                 print "testing:tag=",tag,"loss=",loss,"mean loss of tag=",stat[tag];
                 #generating dense result
                 if len(net_model) > 4:
+                    sampletimes = 4;
                     ptsnum = int(yGTout.shape[1]);
-                    x3Ddense = np.zeros([BATCH_SIZE,ptsnum*10,3],np.float32);
-                    ydense = np.zeros([BATCH_SIZE,ptsnum*10,3],np.float32);
-                    for i in range(10):
+                    x3Ddense = np.zeros([BATCH_SIZE,ptsnum*sampletimes,3],np.float32);
+                    ydense = np.zeros([BATCH_SIZE,ptsnum*sampletimes,3],np.float32);
+                    for i in range(sampletimes):
                         x3D = util.rand_n_sphere(BATCH_SIZE,ptsnum);
                         x3Ddense[:,i*ptsnum:(i+1)*ptsnum,0:3] = x3D;
                         x3D = x3D.reshape((-1,3));
+                        yout = None;
                         if len(ins) < 5:
                             yout = sess.run(outs[0],feed_dict={ins[1]:x3D,ins[2]:x2D});
                         else:
@@ -293,6 +294,7 @@ def test(sizes):
                     tri_lstdense = util.triangulateSphere( x3Ddense );
                     f_lstdense = util.getface(tri_lstdense);
                     util.write_to_obj(fdir+os.sep+"objdense",ydense,rgbdense,f_lstdense);
+                util.write_to_img(fdir,x2D);
             fpkl = None;
             if ( not testbegin is None ) and ( not testend is None ):
                 fpkl = open(preddir+os.sep+"log%03d_%03d.pkl"%(testbegin,testend),"wb");
@@ -304,9 +306,11 @@ def test(sizes):
                 f = open(preddir+os.sep+"log.txt","w");
                 for (k,v) in stat.items():
                     print >>f,k,v;
-            pickle.dump(stat,fpkl);
+                f.close();
+            if fpkl is not None:
+                pickle.dump(stat,fpkl);
+                fpkl.close();
         finally:
-            f.close();
             test_fetcher.shutdown();
     return;
 
