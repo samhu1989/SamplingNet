@@ -1,5 +1,13 @@
 \section{Related Work}
-\subsection{Learning to learn and filter prediction}
-It is not a new idea to learn neural networks that predict the parameters of another. It is one of the approaches found for \textit{learning to learn}.  A few authors \cite{schmidhuber1992learning,bertinetto2016learning,jia2016dynamic} , in particular, have proposed to apply such idea in their works. We explore this idea under total different motivations. Our motivations are a) to enable the ability of representing shape as spatial distribution instead of any specific point set b) to handle the \textit{sampling variation} and \textit{semantic variation} separately. 
+\subsection{Learning to Learn and Filter Prediction}
+It is not a new idea to learn neural networks that predict the parameters of another. It is one of the approaches found for \textit{learning to learn}.  A few authors \cite{schmidhuber1992learning,bertinetto2016learning,jia2016dynamic} , in particular, have proposed to apply such idea in their works. Our work explore this idea under total different motivations. Our motivations are a) to enable the ability of representing shape as spatial distribution depend on the input image instead of any specific point set b) to handle the \textit{sampling variation} and \textit{semantic variation} separately. 
 
-\subsection{Shape Generation from Image with Neural Network}
+\subsection{Networks for Shape Generation from Image}
+Recently, the network structure for shape generation from image is being actively exploring. One approach is to represent the shape as volumetric occupancy function. \cite{3DR2N2} proposed 3D-R2N2, a 3D recurrent neural network based on LSTM to infer a 3D volumetric function from a single view or multiple views. \cite{girdhar2016learning} proposed a network for single view shape generation by embedding the image and shape all together. \cite{NIPS2016_6096} applys the idea of VAE-GAN on the task of volumetric shape generation. \cite{NIPS2016_6206} uses only images contour as supervision for the shape generation and \cite{NIPS2016_6600} proposed a conditional generative network for unsupervised learning of shape generation. 
+
+These neural networks use voxel representations, which
+requires a large amount of memory and is inefficient respecting to common 3D transformations (i.e. rotation, affine transformation ). \cite{PSGN} proposed an alternative approach with neural networks that regress unordered
+3D point sets for 3D shape generation. Our network also use point set as shape representation but our goal is to design a mesh generation network
+
+\subsection{Networks for Shape Deformation}
+An alternative way for shape 
