@@ -1,10 +1,11 @@
 \section{Experimental Evaluation}
 \subsection{Experimental Setup}
 We train and evaluate our models on the ShapeNet\cite{shapenetdata}. Specifically, we use the version 2 release of ShapeNetCore55 which contains over 50k of
-manually created and cleaned 3D CAD models in 55 category.The images for training
+manually created and cleaned 3D CAD models in 55 category.
+The images for training
 and testing are rendered in random angles to provide synthetic training data for the model. In total,
 51,856 shape models are covered. For the training/validation/testing split, we follow the CSV file provided by the ShapeNet website and resulted in 36,622/5,110/10,124 shapes. The 3D CAD objects are
-stored as meshes, we resample the meshes into point sets. In order to capture only the shape surface, we uses the code from \cite{Wang-2017-OCNN} and execute ``virtual scan" for the resampling.
+stored as meshes, we re-sample the meshes into point sets. In order to capture only the shape surface, we uses the code from \cite{Wang-2017-OCNN} and execute ``virtual scan" for the re-sampling.
 \subsection{Point Set Generation with Synthetic Images}
 In this subsection, we compare our approach with point set generation network (PSGN)\cite{PSGN} on ShapeNet dataset \cite{shapenetdata}. 
 \begin{table*}
@@ -108,13 +109,6 @@ In this subsection, we compare our approach with point set generation network (P
 	\end{tabular}
 	\label{tab:seg}
 \end{table*}
-\begin{figure}[htbp]
-	\centering
-	\includegraphics[width=\linewidth]{img/KPARAM/stepbystep}
-	\caption{step by step result}
-	\label{fig:stepbystep}
-\end{figure}
-\subsection{Generalization Capacity}
-\subsection{Global Semantic Correspondences}
-\subsection{Ablation Analysis}
+
+\subsection{Analysis of Variation of Network Designs}
 \subsection{Point Set Generation with Real Images}
